@@ -24,14 +24,9 @@ html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}
  box-shadow:0 2px 12px #0004;
 }
 
-/* ✅ collapse styles */
-.panel.collapsed{
- width:180px;
- padding:10px;
-}
-.panel.collapsed #directions{
- display:none;
-}
+/* COLLAPSE */
+.panel.collapsed{width:180px;padding:10px;}
+.panel.collapsed #directions{display:none;}
 
 .expand-btn{
  position:absolute;
@@ -44,9 +39,25 @@ html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}
  cursor:pointer;
  display:none;
 }
-.panel.collapsed .expand-btn{
- display:block;
+.panel.collapsed .expand-btn{display:block;}
+
+.buttons{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+button{background:#174A7C;color:white;border:0;border-radius:18px;padding:8px 12px;cursor:pointer}
+.nandos{background:#e85d04}
+
+.directions{max-height:230px;overflow:auto;border-top:1px solid #ddd;padding-top:8px}
+.time{color:#174A7C;font-weight:bold}
+
+/* ICONS */
+.marker{
+ width:22px;height:22px;border-radius:50%;
+ border:3px solid white;box-shadow:0 1px 6px #0008;
 }
+.hotel{background:#7b1fa2}
+.rail{background:#7b1fa2}
+.venue{background:#2b7bff}
+.restaurant{background:#e53935}
+.tube{background:#111}
 </style>
 </head>
 
@@ -65,28 +76,131 @@ html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}
 <button onclick="showDay('Thursday')">Thursday</button>
 <button onclick="showDay('Friday')">Friday</button>
 <button onclick="showDay('Saturday')">Saturday</button>
-<button class="nandos" onclick="toggleNandos()">Best Nando's</button>
 </div>
 
-<div id="directions">Select a day</div>
+<div id="directions">Tap a day...</div>
 </div>
 
 <script>
 
-// ✅ MAP
+// ===== DATA =====
+const places={
+ hotel:[51.5444,-0.1624,'Hotel','hotel'],
+ stpancras:[51.5319,-0.1264,'St Pancras','rail'],
+ camden:[51.5413,-0.1461,'Camden Market','venue'],
+ library:[51.5300,-0.1277,'British Library','venue'],
+ roundhouse:[51.5433,-0.1518,'Roundhouse','venue'],
+ soho:[51.5136,-0.1365,'Soho','venue'],
+ nandosSoho:[51.5141,-0.1317,"Nando's Soho",'restaurant'],
+ chalk:[51.5441,-0.1537,'Chalk Farm','tube'],
+ tcr:[51.5162,-0.1309,'Tottenham Court Road','tube']
+};
+
+const timetable={
+ Monday:[
+  ['13:57','stpancras','Arrive'],
+  ['17:00','camden','Visit Camden']
+ ],
+ Tuesday:[
+  ['10:00','library','Library visit'],
+  ['19:00','roundhouse','Concert']
+ ],
+ Wednesday:[
+  ['18:00','soho','Evening'],
+  ['19:00','nandosSoho','Dinner']
+ ]
+};
+
+const routes={
+ Monday:[
+  ['stpancras','hotel','transit'],
+  ['hotel','camden','walk']
+ ],
+ Tuesday:[
+  ['hotel','library','transit'],
+  ['library','roundhouse','walk']
+ ],
+ Wednesday:[
+  ['hotel','tcr','transit'],
+  ['tcr','soho','walk']
+ ]
+};
+
+// ===== MAP =====
 const map=L.map('map').setView([51.528,-0.15],12);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
- maxZoom:19,
- attribution:'© OpenStreetMap'
+ maxZoom:19
 }).addTo(map);
 
-// ✅ SIMPLE VERSION (your data would stay working here)
-function showDay(day){
- document.getElementById('directions').innerHTML = day;
+let markers=[],lines=[];
+
+// ===== ICONS =====
+function markerIcon(type){
+ return L.divIcon({
+  className:'',
+  html:`<div class="marker ${type}"></div>`,
+  iconSize:[24,24],
+  iconAnchor:[12,12]
+ });
 }
 
-// ✅ ===== COLLAPSE FEATURE =====
+// ===== FUNCTIONS =====
+function addMarker(k){
+ let p=places[k];
+ let m=L.marker([p[0],p[1]],{icon:markerIcon(p[3])})
+  .addTo(map)
+  .bindPopup(p[2]);
+ markers.push(m);
+ return [p[0],p[1]];
+}
+
+function clearMap(){
+ markers.forEach(m=>map.removeLayer(m));
+ lines.forEach(l=>map.removeLayer(l));
+ markers=[];lines=[];
+}
+
+function scheduleHtml(day){
+ return '<b>'+day+'</b><ol>' +
+  timetable[day].map(i =>
+   `<li><span class="time">${i[0]}</span> ${i[2]} (${places[i[1]][2]})</li>`
+  ).join('') +
+ '</ol>';
+}
+
+function showDay(day){
+ clearMap();
+ let bounds=[];
+
+ if(day==='All'){
+  Object.keys(places).forEach(k=>bounds.push(addMarker(k)));
+  document.getElementById('directions').innerHTML='All locations';
+ } else {
+
+  routes[day].forEach(r=>{
+   let a=places[r[0]];
+   let b=places[r[1]];
+
+   lines.push(
+    L.polyline([[a[0],a[1]],[b[0],b[1]]],{
+     color: r[2]==='walk' ? '#2e7d32' : '#1565c0',
+     dashArray: r[2]==='walk' ? '8,8' : null,
+     weight:5
+    }).addTo(map)
+   );
+
+   bounds.push(addMarker(r[0]));
+   bounds.push(addMarker(r[1]));
+  });
+
+  document.getElementById('directions').innerHTML=scheduleHtml(day);
+ }
+
+ if(bounds.length) map.fitBounds(bounds);
+}
+
+// ===== COLLAPSE =====
 function collapsePanel(){
  const panel=document.querySelector('.panel');
  if(panel) panel.classList.add('collapsed');
@@ -121,7 +235,7 @@ setTimeout(()=>{
  }
 },500);
 
-// ✅ START
+// START
 showDay('All');
 
 </script>
