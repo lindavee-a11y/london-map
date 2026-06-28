@@ -1,21 +1,50 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>London 2026 Trip Map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>London Trip Map</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-html,body,#map{height:100%;margin:0;font-family:Arial}
+html, body, #map { height:100%; margin:0; font-family:Arial; }
+
 .panel{
- position:absolute; z-index:1000; top:10px; left:10px;
- background:white; padding:12px; border-radius:12px;
- max-width:380px;
+ position:absolute;
+ top:15px;
+ left:15px;
+ background:white;
+ padding:15px;
+ border-radius:12px;
+ width:320px;
+ box-shadow:0 4px 15px rgba(0,0,0,0.2);
 }
-button{margin:3px; padding:6px 10px;}
+
+.panel h1{
+ font-size:18px;
+ margin:0 0 10px;
+}
+
+button{
+ margin:3px;
+ padding:6px 10px;
+ border-radius:6px;
+ border:0;
+ background:#174A7C;
+ color:white;
+ cursor:pointer;
+}
+
+button:hover{
+ background:#2b7bff;
+}
+
+#info{
+ margin-top:10px;
+ font-size:13px;
+}
 </style>
 </head>
 
@@ -24,36 +53,35 @@ button{margin:3px; padding:6px 10px;}
 <div id="map"></div>
 
 <div class="panel">
-<b>London Trip 2026</b><br><br>
+<h1>London Trip 2026</h1>
 
 <button onclick="showDay('All')">All</button>
 <button onclick="showDay('Monday')">Mon</button>
 <button onclick="showDay('Tuesday')">Tue</button>
-<button onclick="showDay('Wednesday')">Wed (Kew)</button>
+<button onclick="showDay('Wednesday')">Wed</button>
 <button onclick="showDay('Thursday')">Thu</button>
 <button onclick="showDay('Friday')">Fri</button>
-<button onclick="showDay('Saturday')">Sat</button>
 
-<p id="info">All locations</p>
+<div id="info">All locations</div>
 </div>
 
 <script>
 
 const map = L.map('map').setView([51.51,-0.14],12);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
-.addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
+// Locations
 const places = {
  hotel:[51.5444,-0.1624,"Hotel"],
  camden:[51.5413,-0.1461,"Camden Market"],
  primrose:[51.5399,-0.1614,"Primrose Hill"],
  kew:[51.4783,-0.2980,"Kew Gardens"],
- va:[51.4966,-0.1722,"V&A Museum"],
- heath:[51.5608,-0.1657,"Hampstead Heath"],
- wallace:[51.5173,-0.1529,"Wallace Collection"]
+ covent:[51.5117,-0.1230,"Covent Garden"],
+ soho:[51.5136,-0.1365,"Soho"]
 };
 
+// Timetable (with your FIX ✅)
 const timetable = {
 
  Monday:[
@@ -73,7 +101,7 @@ const timetable = {
   "10:00 Travel to Kew",
   "11:00–14:30 Kew Gardens",
   "15:00 Return hotel",
-  "16:00–17:30 Refresh & rest",
+  "16:00–17:30 Refresh & rest ✅",
   "18:00 Covent Garden",
   "19:00 Nando’s Soho"
  ],
@@ -120,7 +148,6 @@ function showDay(day){
  }
 
  if(day==="Tuesday"){
-  addMarker(places.hotel);
   document.getElementById("info").innerHTML=timetable.Tuesday.join("<br>");
  }
 
@@ -130,13 +157,10 @@ function showDay(day){
  }
 
  if(day==="Thursday"){
-  addMarker(places.va);
   document.getElementById("info").innerHTML=timetable.Thursday.join("<br>");
  }
 
  if(day==="Friday"){
-  addMarker(places.heath);
-  addMarker(places.wallace);
   document.getElementById("info").innerHTML=timetable.Friday.join("<br>");
  }
 }
