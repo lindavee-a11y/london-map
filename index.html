@@ -24,29 +24,30 @@ html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}
 .panel.collapsed #directions{display:none;}
 
 .expand-btn{
- position:absolute;top:10px;right:-40px;
- background:#174A7C;color:white;
- border-radius:8px;padding:6px 8px;
+ position:absolute;
+ top:10px;right:-40px;
+ background:#174A7C;color:#fff;
+ padding:6px 8px;border-radius:8px;
  cursor:pointer;display:none;
 }
 .panel.collapsed .expand-btn{display:block;}
 
 .buttons{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-button{background:#174A7C;color:#fff;border:0;border-radius:18px;padding:8px 12px;cursor:pointer}
-.nandos{background:#e85d04}
+.buttons button{background:#174A7C;color:#fff;border:0;border-radius:18px;padding:8px 12px;cursor:pointer}
+.buttons .nandos{background:#e85d04}
 
-.directions{max-height:230px;overflow:auto;border-top:1px solid #ddd;padding-top:8px}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;font-size:13px}
 
+.directions{font-size:13px;margin-top:8px;max-height:230px;overflow:auto;border-top:1px solid #ddd;padding-top:8px}
 .time{font-weight:bold;color:#174A7C}
 
-/* ICONS */
-.marker{width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 1px 6px #0008}
+/* icons */
+.marker{width:22px;height:22px;border-radius:50%;border:4px solid white;box-shadow:0 1px 6px #0008}
 .hotel{background:#7b1fa2}
 .rail{background:#7b1fa2}
 .venue{background:#2b7bff}
 .restaurant{background:#e53935}
 .tube{background:#111}
-.nando{background:#e85d04;color:white;text-align:center;font-weight:bold;line-height:22px}
 </style>
 </head>
 
@@ -68,17 +69,18 @@ button{background:#174A7C;color:#fff;border:0;border-radius:18px;padding:8px 12p
 <button class="nandos" onclick="toggleNandos()">Best Nando's</button>
 </div>
 
-<div id="directions">Tap a day...</div>
+<div id="directions">Tap a day…</div>
 </div>
 
 <script>
 
 // ===== PLACES =====
 const places={
- hotel:[51.5444,-0.1624,'Hotel','hotel'],
- stpancras:[51.5319,-0.1264,'St Pancras','rail'],
- camden:[51.5413,-0.1461,'Camden','venue'],
+ hotel:[51.5444,-0.1624,'Hampstead Britannia Hotel','hotel'],
+ stpancras:[51.5319,-0.1264,'St Pancras International','rail'],
+ camden:[51.5413,-0.1461,'Camden Market','venue'],
  primrose:[51.5399,-0.1614,'Primrose Hill','venue'],
+ regents:[51.5311,-0.1599,"Regent's Park",'venue'],
  library:[51.5300,-0.1277,'British Library','venue'],
  coal:[51.5366,-0.1254,'Coal Drops Yard','venue'],
  roundhouse:[51.5433,-0.1518,'Roundhouse','venue'],
@@ -86,168 +88,98 @@ const places={
  covent:[51.5117,-0.1230,'Covent Garden','venue'],
  soho:[51.5136,-0.1365,'Soho','venue'],
  nandosSoho:[51.5141,-0.1317,"Nando's Soho",'restaurant'],
- va:[51.4966,-0.1722,'V&A Museum','venue'],
+ va:[51.4966,-0.1722,'Victoria & Albert Museum','venue'],
  hyde:[51.5073,-0.1657,'Hyde Park','venue'],
  heath:[51.5608,-0.1657,'Hampstead Heath','venue'],
  wallace:[51.5173,-0.1529,'Wallace Collection','venue'],
- nandosFinchley:[51.5481,-0.1812,"Nando's Finchley",'restaurant'],
- chalk:[51.5441,-0.1537,'Chalk Farm','tube'],
- kings:[51.5308,-0.1238,'Kings Cross','tube'],
- tcr:[51.5162,-0.1309,'Tottenham Court Road','tube'],
- southKen:[51.4941,-0.1738,'South Kensington','tube'],
- kewStation:[51.4770,-0.2850,'Kew Station','tube'],
- finchley:[51.5472,-0.1803,'Finchley Road','tube']
+ nandosFinchley:[51.5481,-0.1812,"Nando's Finchley Road",'restaurant'],
+ chalk:[51.5441,-0.1537,'Chalk Farm Underground','tube'],
+ kings:[51.5308,-0.1238,"King's Cross Underground",'tube'],
+ tcr:[51.5162,-0.1309,'Tottenham Court Road Underground','tube'],
+ southKen:[51.4941,-0.1738,'South Kensington Underground','tube'],
+ kewStation:[51.4770,-0.2850,'Kew Gardens Station','tube'],
+ finchley:[51.5472,-0.1803,'Finchley Road Underground','tube'],
+ bond:[51.5172,-0.1492,'Bond Street Underground','tube']
 };
 
-// ===== TIMETABLE =====
+// ===== FULL ORIGINAL TIMETABLE =====
 const timetable={
  Monday:[
- ['13:57','stpancras','Arrive'],
+ ['13:57','stpancras','Arrive St Pancras'],
+ ['14:45-15:15','hotel','Travel to hotel'],
  ['15:30','hotel','Check-in'],
- ['17:00','camden','Camden'],
- ['18:30','primrose','Primrose Hill']
+ ['17:00','camden','Camden Market'],
+ ['18:30','primrose','Primrose Hill'],
+ ['19:30','camden','Dinner'],
+ ['Evening','hotel','Relax']
  ],
  Tuesday:[
- ['10:00','library','Library'],
- ['13:30','coal','Coal'],
+ ['09:30','chalk','Travel'],
+ ['10:00','library','British Library'],
+ ['13:30','coal','Coal Drops'],
+ ['15:30','hotel','Rest'],
+ ['17:30','camden','Dinner'],
  ['19:00','roundhouse','Concert']
  ],
  Wednesday:[
- ['11:00','kew','Kew'],
- ['18:00','covent','Covent'],
+ ['10:00','kewStation','Travel'],
+ ['11:00','kew','Kew Gardens'],
+ ['16:00','hotel','Rest'],
+ ['18:00','covent','Covent Garden'],
  ['19:00','nandosSoho','Dinner']
  ],
  Thursday:[
- ['10:45','va','Museum'],
- ['14:30','hyde','Park']
+ ['10:45','southKen','Travel'],
+ ['11:00','va','V&A Museum'],
+ ['14:30','hyde','Hyde Park']
  ],
  Friday:[
- ['10:30','heath','Heath'],
- ['14:30','wallace','Gallery'],
+ ['10:30','heath','Hampstead Heath'],
+ ['14:30','wallace','Wallace Collection'],
  ['18:30','nandosFinchley','Dinner']
  ],
  Saturday:[
- ['13:49','stpancras','Return']
+ ['12:30','stpancras','Travel'],
+ ['13:49','stpancras','Departure']
  ]
 };
 
 // ===== ROUTES =====
 const routes={
  Monday:[['stpancras','hotel','transit'],['hotel','camden','walk'],['camden','primrose','walk']],
- Tuesday:[['hotel','library','transit'],['library','coal','walk'],['coal','roundhouse','walk']],
- Wednesday:[['hotel','kewStation','transit'],['kewStation','kew','walk'],['kew','covent','transit'],['covent','soho','walk']],
+ Tuesday:[['hotel','chalk','walk'],['chalk','library','transit'],['library','coal','walk'],['coal','hotel','transit'],['hotel','roundhouse','walk']],
+ Wednesday:[['hotel','kewStation','transit'],['kewStation','kew','walk'],['kew','hotel','transit'],['hotel','covent','transit'],['covent','soho','walk']],
  Thursday:[['hotel','southKen','transit'],['southKen','va','walk'],['va','hyde','walk']],
  Friday:[['hotel','heath','walk'],['heath','wallace','transit'],['wallace','finchley','transit']],
  Saturday:[['hotel','stpancras','transit']]
 };
-
-const nandos=[
- {rank:1,name:"Nando's Soho",lat:51.5141,lon:-0.1317},
- {rank:2,name:"Nando's Finchley",lat:51.5481,lon:-0.1812}
-];
 
 // ===== MAP =====
 const map=L.map('map').setView([51.528,-0.15],12);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
 
-let markers=[],lines=[],nandoMarkers=[];
+let markers=[],lines=[];
 
 // ===== ICON =====
 function icon(type){
  return L.divIcon({
+  className:'',
   html:`<div class="marker ${type}"></div>`,
-  className:'',iconSize:[24,24]
+  iconSize:[30,30],iconAnchor:[15,15]
  });
 }
 
-// ===== FUNCTIONS =====
+// ===== ADD MARKER =====
 function addMarker(k){
  let p=places[k];
- let m=L.marker([p[0],p[1]],{icon:icon(p[3])}).addTo(map).bindPopup(p[2]);
+ let m=L.marker([p[0],p[1]],{icon:icon(p[3])})
+  .addTo(map)
+  .bindPopup(`<b>${p[2]}</b><br>
+  <a href="https://www.google.com/maps/search/?api=1&query=${p[0]},${p[1]}" target="_blank">Open in Google Maps</a>`);
  markers.push(m);
  return [p[0],p[1]];
 }
 
-function clearMap(){
- markers.forEach(m=>map.removeLayer(m));
- lines.forEach(l=>map.removeLayer(l));
- markers=[];lines=[];
-}
-
-function schedule(day){
- return '<b>'+day+'</b><ol>' +
- timetable[day].map(t =>
-  `<li><span class="time">${t[0]}</span> ${t[2]} (${places[t[1]][2]})</li>`
- ).join('')+'</ol>';
-}
-
-function showDay(day){
- clearMap();
- let bounds=[];
-
- if(day==='All'){
-  Object.keys(places).forEach(k=>bounds.push(addMarker(k)));
-  document.getElementById('directions').innerHTML='All locations';
- } else {
-
-  routes[day].forEach(r=>{
-   let a=places[r[0]], b=places[r[1]];
-   lines.push(
-    L.polyline([[a[0],a[1]],[b[0],b[1]]],{
-     color:r[2]==='walk'?'#2e7d32':'#1565c0',
-     dashArray:r[2]==='walk'?'8,8':null
-    }).addTo(map)
-   );
-   bounds.push(addMarker(r[0]));
-   bounds.push(addMarker(r[1]));
-  });
-
-  document.getElementById('directions').innerHTML=schedule(day);
- }
-
- if(bounds.length) map.fitBounds(bounds);
-}
-
-function toggleNandos(){
- nandoMarkers.forEach(m=>map.removeLayer(m));
- nandoMarkers=[];
-
- nandos.forEach(n=>{
-  let m=L.marker([n.lat,n.lon],{
-   icon:L.divIcon({html:`<div class="marker nando">${n.rank}</div>`,className:''})
-  }).addTo(map).bindPopup(n.name);
-  nandoMarkers.push(m);
- });
-}
-
-// ===== COLLAPSE =====
-function collapsePanel(){
- document.querySelector('.panel').classList.add('collapsed');
-}
-
-function expandPanel(){
- let p=document.querySelector('.panel');
- p.classList.remove('collapsed');
- setTimeout(()=>p.classList.add('collapsed'),15000);
-}
-
-const orig=showDay;
-showDay=function(day){orig(day);collapsePanel();}
-
-setTimeout(()=>{
- let p=document.querySelector('.panel');
- let b=document.createElement('div');
- b.className='expand-btn';
- b.innerHTML='☰';
- b.onclick=expandPanel;
- p.appendChild(b);
-},500);
-
-// START
-showDay('All');
-
-</script>
-
-</body>
-</html>
+// ===== CLEAR =====
+function
