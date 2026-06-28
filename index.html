@@ -1,5 +1,102 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>London Trip Map with Days</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><style>html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}.panel{position:absolute;z-index:1000;top:12px;left:12px;right:12px;max-width:460px;background:rgba(255,255,255,.96);padding:14px;border-radius:14px;box-shadow:0 2px 12px #0004}h1{font-size:19px;margin:0 0 6px;color:#174A7C}.buttons{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.buttons button{background:#174A7C;color:#fff;border:0;border-radius:18px;padding:8px 12px;font-size:14px}.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;font-size:13px}.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px}.directions{font-size:13px;margin-top:8px;max-height:150px;overflow:auto}.leaflet-popup-content{font-size:14px}.gm{display:inline-block;margin-top:6px;background:#174A7C;color:#fff!important;padding:7px 9px;border-radius:8px;text-decoration:none}@media(max-width:650px){.panel{max-width:none}.directions{max-height:120px}}</style></head><body><div id="map"></div><div class="panel"><h1>London 2026 Trip Map</h1><p>Choose a day to show only that day’s route.</p><div class="buttons"><button onclick="showDay('All')">All</button><button onclick="showDay('Monday')">Monday</button><button onclick="showDay('Tuesday')">Tuesday</button><button onclick="showDay('Wednesday')">Wednesday</button><button onclick="showDay('Thursday')">Thursday</button><button onclick="showDay('Friday')">Friday</button><button onclick="showDay('Saturday')">Saturday</button></div><div class="legend"><span><span class="dot" style="background:#7b1fa2"></span>Hotel/Rail</span><span><span class="dot" style="background:#2b7bff"></span>Venue</span><span><span class="dot" style="background:#e53935"></span>Restaurant</span><span><span class="dot" style="background:#111"></span>Tube</span><span><span class="dot" style="background:#2e7d32"></span>Walking line</span><span><span class="dot" style="background:#1565c0"></span>Public transport line</span></div><div id="directions" class="directions">Tap a day button to see that day’s route.</div></div><script>
-const places={hotel:[51.5444,-0.1624,'Hampstead Britannia Hotel','Hotel'],stpancras:[51.5319,-0.1264,'St Pancras International','Rail'],camden:[51.5413,-0.1461,'Camden Market','Venue'],primrose:[51.5399,-0.1614,'Primrose Hill','Venue'],regents:[51.5311,-0.1599,"Regent's Park",'Venue'],library:[51.53,-0.1277,'British Library','Venue'],coal:[51.5366,-0.1254,'Coal Drops Yard','Venue'],roundhouse:[51.5433,-0.1518,'Roundhouse','Venue'],museum:[51.5194,-0.127,'British Museum','Venue'],covent:[51.5117,-0.123,'Covent Garden','Venue'],soho:[51.5136,-0.1365,'Soho','Venue'],nandosSoho:[51.5141,-0.1317,"Nando's Soho",'Restaurant'],va:[51.4966,-0.1722,'Victoria and Albert Museum','Venue'],hyde:[51.5073,-0.1657,'Hyde Park','Venue'],heath:[51.5608,-0.1657,'Hampstead Heath','Venue'],wallace:[51.5173,-0.1529,'Wallace Collection','Venue'],nandosFinchley:[51.5481,-0.1812,"Nando's Finchley Road",'Restaurant'],chalk:[51.5441,-0.1537,'Chalk Farm Underground','Tube'],kings:[51.5308,-0.1238,"King's Cross St Pancras Underground",'Tube'],tcr:[51.5162,-0.1309,'Tottenham Court Road Underground','Tube'],southKen:[51.4941,-0.1738,'South Kensington Underground','Tube'],finchley:[51.5472,-0.1803,'Finchley Road Underground','Tube'],bond:[51.5172,-0.1492,'Bond Street Underground','Tube']};
-const routes={Monday:[['stpancras','hotel','transit'],['hotel','camden','walk'],['camden','primrose','walk'],['primrose','regents','walk'],['regents','hotel','walk']],Tuesday:[['hotel','chalk','walk'],['chalk','kings','transit'],['kings','library','walk'],['library','coal','walk'],['coal','hotel','transit'],['hotel','roundhouse','walk'],['roundhouse','hotel','walk']],Wednesday:[['hotel','chalk','walk'],['chalk','tcr','transit'],['tcr','museum','walk'],['museum','covent','walk'],['covent','soho','walk'],['soho','hotel','transit'],['hotel','tcr','transit'],['tcr','nandosSoho','walk'],['nandosSoho','hotel','transit']],Thursday:[['hotel','chalk','walk'],['chalk','southKen','transit'],['southKen','va','walk'],['va','hyde','walk'],['hyde','hotel','transit']],Friday:[['hotel','heath','walk'],['heath','bond','transit'],['bond','wallace','walk'],['wallace','hotel','transit'],['hotel','finchley','transit'],['finchley','nandosFinchley','walk'],['nandosFinchley','hotel','transit']],Saturday:[['hotel','chalk','walk'],['chalk','stpancras','transit']]};
-const map=L.map('map').setView([51.528,-0.15],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);function c(t){return t==='Restaurant'?'#e53935':t==='Tube'?'#111':(t==='Hotel'||t==='Rail')?'#7b1fa2':'#2b7bff'}function icon(t){return L.divIcon({className:'',html:`<div style="background:${c(t)};width:22px;height:22px;border-radius:50%;border:4px solid white;box-shadow:0 1px 6px #0008"></div>`,iconSize:[30,30],iconAnchor:[15,15]})}let markers=[],lines=[];function addMarker(k){let p=places[k];let m=L.marker([p[0],p[1]],{icon:icon(p[3])}).addTo(map).bindPopup(`<b>${p[2]}</b><br>${p[3]}<br><a class="gm" href="https://www.google.com/maps/search/?api=1&query=${p[0]},${p[1]}" target="_blank">Open in Google Maps</a>`);markers.push(m);return [p[0],p[1]]}function clear(){markers.forEach(m=>map.removeLayer(m));lines.forEach(l=>map.removeLayer(l));markers=[];lines=[]}function showDay(day){clear();let bounds=[];let text='<b>'+day+'</b><ol>';if(day==='All'){Object.keys(places).forEach(k=>bounds.push(addMarker(k)));document.getElementById('directions').innerHTML='All locations are shown. Choose a day for route lines.'}else{routes[day].forEach(seg=>{let a=places[seg[0]],b=places[seg[1]];bounds.push(addMarker(seg[0]));bounds.push(addMarker(seg[1]));lines.push(L.polyline([[a[0],a[1]],[b[0],b[1]]],{color:seg[2]==='walk'?'#2e7d32':'#1565c0',weight:5,dashArray:seg[2]==='walk'?'8,10':null,opacity:.85}).addTo(map));text+=`<li>${seg[2]==='walk'?'Walk':'Public transport'}: ${a[2]} → ${b[2]}</li>`});document.getElementById('directions').innerHTML=text+'</ol>'}map.fitBounds(bounds,{padding:[30,30]})}showDay('All');
-</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>London 2026 Trip Map with Timetable</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}.panel{position:absolute;z-index:1000;top:12px;left:12px;right:12px;max-width:540px;background:rgba(255,255,255,.96);padding:14px;border-radius:14px;box-shadow:0 2px 12px #0004}h1{font-size:19px;margin:0 0 6px;color:#174A7C}.buttons{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.buttons button{background:#174A7C;color:#fff;border:0;border-radius:18px;padding:8px 12px;font-size:14px;cursor:pointer}.buttons button.nandos{background:#e85d04}.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;font-size:13px}.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px}.directions{font-size:13px;margin-top:8px;max-height:210px;overflow:auto;border-top:1px solid #ddd;padding-top:8px}.directions ol{margin-top:6px}.directions li{margin:4px 0}.leaflet-popup-content{font-size:14px}.gm{display:inline-block;margin-top:6px;background:#174A7C;color:#fff!important;padding:7px 9px;border-radius:8px;text-decoration:none}.rank{font-weight:bold;color:#e85d04}.time{font-weight:bold;color:#174A7C}.daylabel{font-weight:bold;color:#174A7C}.nandolist{margin:7px 0 0 18px;padding:0}.nandolist li{margin:4px 0}@media(max-width:650px){.panel{max-width:none}.directions{max-height:150px}.buttons button{font-size:13px;padding:7px 10px}}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="panel">
+  <h1>London 2026 Trip Map</h1>
+  <p>Choose a day to show route lines and timetable. Tap pins for times and Google Maps.</p>
+  <div class="buttons">
+    <button onclick="showDay('All')">All</button>
+    <button onclick="showDay('Monday')">Monday</button>
+    <button onclick="showDay('Tuesday')">Tuesday</button>
+    <button onclick="showDay('Wednesday')">Wednesday</button>
+    <button onclick="showDay('Thursday')">Thursday</button>
+    <button onclick="showDay('Friday')">Friday</button>
+    <button onclick="showDay('Saturday')">Saturday</button>
+    <button class="nandos" onclick="toggleNandos()">Best Nando's overlay</button>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:#7b1fa2"></span>Hotel/Rail</span>
+    <span><span class="dot" style="background:#2b7bff"></span>Trip venue</span>
+    <span><span class="dot" style="background:#e53935"></span>Trip restaurant</span>
+    <span><span class="dot" style="background:#111"></span>Tube</span>
+    <span><span class="dot" style="background:#2e7d32"></span>Walking route</span>
+    <span><span class="dot" style="background:#1565c0"></span>Public transport</span>
+    <span><span class="dot" style="background:#e85d04"></span>Best Nando's</span>
+  </div>
+  <div id="directions" class="directions">Tap a day button to see that day’s timetable and route.</div>
+</div>
+<script>
+const places={
+  hotel:[51.5444,-0.1624,'Hampstead Britannia Hotel','Hotel'],stpancras:[51.5319,-0.1264,'St Pancras International','Rail'],camden:[51.5413,-0.1461,'Camden Market','Venue'],primrose:[51.5399,-0.1614,'Primrose Hill','Venue'],regents:[51.5311,-0.1599,"Regent's Park",'Venue'],library:[51.53,-0.1277,'British Library','Venue'],coal:[51.5366,-0.1254,'Coal Drops Yard','Venue'],roundhouse:[51.5433,-0.1518,'Roundhouse','Venue'],museum:[51.5194,-0.127,'British Museum','Venue'],covent:[51.5117,-0.123,'Covent Garden','Venue'],soho:[51.5136,-0.1365,'Soho','Venue'],nandosSoho:[51.5141,-0.1317,"Nando's Soho",'Restaurant'],va:[51.4966,-0.1722,'Victoria and Albert Museum','Venue'],hyde:[51.5073,-0.1657,'Hyde Park','Venue'],heath:[51.5608,-0.1657,'Hampstead Heath','Venue'],wallace:[51.5173,-0.1529,'Wallace Collection','Venue'],nandosFinchley:[51.5481,-0.1812,"Nando's Finchley Road",'Restaurant'],chalk:[51.5441,-0.1537,'Chalk Farm Underground','Tube'],kings:[51.5308,-0.1238,"King's Cross St Pancras Underground",'Tube'],tcr:[51.5162,-0.1309,'Tottenham Court Road Underground','Tube'],southKen:[51.4941,-0.1738,'South Kensington Underground','Tube'],finchley:[51.5472,-0.1803,'Finchley Road Underground','Tube'],bond:[51.5172,-0.1492,'Bond Street Underground','Tube']
+};
+const timetable={
+  Monday:[
+    ['13:57','stpancras','Arrive St Pancras','Arrival'],['14:45-15:15','hotel','Travel to hotel','Northern Line / bus, about 20 min'],['15:30-16:30','hotel','Check-in',''],['17:00-18:30','camden','Camden Market',''],['18:30-19:30','primrose','Primrose Hill + Regent\'s Park','Scenic walk'],['19:30-20:30','camden','Dinner','Camden'],['Evening','hotel','Relax','']
+  ],
+  Tuesday:[
+    ['08:30-09:30','hotel','Breakfast',''],['09:30-10:00','chalk','Travel to British Library','Tube via Chalk Farm / King\'s Cross'],['10:00-12:30','library','British Library + tour',''],['12:30-13:30','library','Lunch','King\'s Cross'],['13:30-15:30','coal','Coal Drops Yard',''],['15:30-17:00','hotel','Rest at hotel','Important before concert'],['17:15-18:15','camden','Dinner','Camden / flexible'],['18:15-18:30','roundhouse','Walk to Roundhouse',''],['19:00-22:15','roundhouse','Adam Lambert concert',''],['22:30','hotel','Return hotel','Walk']
+  ],
+  Wednesday:[
+    ['09:00-10:00','hotel','Breakfast',''],['10:00-10:30','tcr','Travel to British Museum','Northern Line to Tottenham Court Road'],['10:30-13:30','museum','British Museum',''],['13:30-14:30','museum','Lunch','Bloomsbury'],['14:30-16:30','covent','Covent Garden + Soho','Walk'],['16:30-17:00','hotel','Travel to hotel','Northern Line'],['17:00-18:00','hotel','Refresh & change',''],['18:00-18:30','tcr','Travel to Soho','Northern Line'],['18:30-19:30','nandosSoho',"Nando's Soho",'Dinner'],['Evening','hotel','Return hotel','Northern Line']
+  ],
+  Thursday:[
+    ['09:00-10:00','hotel','Breakfast',''],['10:00-10:45','southKen','Travel to Victoria and Albert Museum','Northern to Piccadilly Line'],['10:45-13:30','va','Victoria and Albert Museum',''],['13:30-14:30','va','Lunch','South Kensington'],['14:30-16:00','hyde','Hyde Park / optional','Walk'],['16:00-16:45','hotel','Travel to hotel','Tube'],['16:45-18:00','hotel','Refresh & change',''],['19:00','hotel','Dinner','Flexible']
+  ],
+  Friday:[
+    ['09:30-10:30','hotel','Breakfast',''],['10:30-13:00','heath','Hampstead Heath','Walk'],['13:00-14:00','heath','Lunch','Local'],['14:00-14:30','bond','Travel to Wallace Collection','Tube / bus'],['14:30-16:00','wallace','Wallace Collection','Hertford House, Manchester Square'],['16:00-16:30','hotel','Travel to hotel','Tube / bus'],['16:30-18:00','hotel','Refresh & change',''],['18:15-18:30','finchley','Travel to Finchley Road','Walk / bus'],['18:30-19:30','nandosFinchley',"Nando's Finchley Road",'Dinner'],['Evening','hotel','Relax','']
+  ],
+  Saturday:[
+    ['08:30-09:30','hotel','Breakfast',''],['09:30-11:30','camden','Walk / coffee','Camden'],['12:30-13:00','stpancras','Travel to St Pancras','Northern Line'],['13:49','stpancras','Eurostar check-in',''],['15:04','stpancras','Departure','']
+  ]
+};
+const routes={
+  Monday:[['stpancras','hotel','transit'],['hotel','camden','walk'],['camden','primrose','walk'],['primrose','regents','walk'],['regents','hotel','walk']],
+  Tuesday:[['hotel','chalk','walk'],['chalk','kings','transit'],['kings','library','walk'],['library','coal','walk'],['coal','hotel','transit'],['hotel','roundhouse','walk'],['roundhouse','hotel','walk']],
+  Wednesday:[['hotel','chalk','walk'],['chalk','tcr','transit'],['tcr','museum','walk'],['museum','covent','walk'],['covent','soho','walk'],['soho','hotel','transit'],['hotel','tcr','transit'],['tcr','nandosSoho','walk'],['nandosSoho','hotel','transit']],
+  Thursday:[['hotel','chalk','walk'],['chalk','southKen','transit'],['southKen','va','walk'],['va','hyde','walk'],['hyde','hotel','transit']],
+  Friday:[['hotel','heath','walk'],['heath','bond','transit'],['bond','wallace','walk'],['wallace','hotel','transit'],['hotel','finchley','transit'],['finchley','nandosFinchley','walk'],['nandosFinchley','hotel','transit']],
+  Saturday:[['hotel','chalk','walk'],['chalk','stpancras','transit']]
+};
+const nandos=[
+  {rank:1,name:"Nando's Waterloo",lat:51.5032,lon:-0.1131,why:'Highest rating in one London ratings source'},
+  {rank:2,name:"Nando's Clink Street",lat:51.5066,lon:-0.0917,why:'High-rated central branch near Borough Market'},
+  {rank:3,name:"Nando's Southwark Arches",lat:51.5054,lon:-0.1047,why:'High-rated central branch near Southwark'},
+  {rank:4,name:"Nando's Covent Garden",lat:51.5107,lon:-0.1257,why:'High-rated and very convenient central location'},
+  {rank:5,name:"Nando's Baker Street",lat:51.5204,lon:-0.1571,why:'Strong London rating source score'},
+  {rank:6,name:"Nando's Soho Frith Street",lat:51.5141,lon:-0.1317,why:'High-rated central branch near Soho'},
+  {rank:7,name:"Nando's Gloucester Road",lat:51.4948,lon:-0.1830,why:'Good rating and close to South Kensington museums'},
+  {rank:8,name:"Nando's Glasshouse Street",lat:51.5106,lon:-0.1366,why:'Central Soho/Piccadilly option'},
+  {rank:9,name:"Nando's King's Cross",lat:51.5320,lon:-0.1229,why:'Named among popular/high-ranked London branches in press'},
+  {rank:10,name:"Nando's Earl's Court",lat:51.4912,lon:-0.1935,why:'Named among highly ranked London branches in press'},
+  {rank:11,name:"Nando's Finchley Road",lat:51.5481,lon:-0.1812,why:'Good practical north-west London option'},
+  {rank:12,name:"Nando's Camden",lat:51.5427,lon:-0.1488,why:'Convenient Camden option; not one of the top-rated central picks'}
+];
+const map=L.map('map').setView([51.528,-0.15],12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+function c(t){return t==='Restaurant'?'#e53935':t==='Tube'?'#111':(t==='Hotel'||t==='Rail')?'#7b1fa2':'#2b7bff'}
+function icon(t){return L.divIcon({className:'',html:`<div style="background:${c(t)};width:22px;height:22px;border-radius:50%;border:4px solid white;box-shadow:0 1px 6px #0008"></div>`,iconSize:[30,30],iconAnchor:[15,15]})}
+function nandoIcon(rank){return L.divIcon({className:'',html:`<div style="background:#e85d04;color:white;width:28px;height:28px;border-radius:50%;border:4px solid white;box-shadow:0 1px 6px #0008;text-align:center;line-height:28px;font-weight:bold;font-size:13px">${rank}</div>`,iconSize:[36,36],iconAnchor:[18,18]})}
+let markers=[],lines=[],nandoMarkers=[];
+function timetableForPlace(key, day){
+  if(!day || day==='All') return '';
+  return timetable[day].filter(item=>item[1]===key).map(item=>`<br><span class="time">${item[0]}</span> ${item[2]}${item[3]?'<br>'+item[3]:''}`).join('');
+}
+function addMarker(k, day){let p=places[k];let extra=timetableForPlace(k,day);let m=L.marker([p[0],p[1]],{icon:icon(p[3])}).addTo(map).bindPopup(`<b>${p[2]}</b><br>${p[3]}${extra}<br><a class="gm" href="https://www.google.com/maps/search/?api=1&query=${p[0]},${p[1]}" target="_blank">Open in Google Maps</a>`);markers.push(m);return [p[0],p[1]]}
+function clearTrip(){markers.forEach(m=>map.removeLayer(m));lines.forEach(l=>map.removeLayer(l));markers=[];lines=[]}
+function scheduleHtml(day){return `<b>${day} timetable</b><ol>`+timetable[day].map(i=>`<li><span class="time">${i[0]}</span> ${i[2]} <span class="daylabel">(${places[i[1]]?places[i[1]][2]:i[1]})</span>${i[3]?` - ${i[3]}`:''}</li>`).join('')+'</ol>'}
+function showDay(day){clearTrip();let bounds=[];if(day==='All'){Object.keys(places).forEach(k=>bounds.push(addMarker(k,'All')));document.getElementById('directions').innerHTML='All trip locations are shown. Choose a day for route lines and timetable, or turn on the Best Nando\'s overlay.'}else{let keys=new Set();routes[day].forEach(seg=>{keys.add(seg[0]);keys.add(seg[1]);let a=places[seg[0]],b=places[seg[1]];lines.push(L.polyline([[a[0],a[1]],[b[0],b[1]]],{color:seg[2]==='walk'?'#2e7d32':'#1565c0',weight:5,dashArray:seg[2]==='walk'?'8,10':null,opacity:.85}).addTo(map));});timetable[day].forEach(item=>keys.add(item[1]));keys.forEach(k=>bounds.push(addMarker(k,day)));document.getElementById('directions').innerHTML=scheduleHtml(day)}map.fitBounds(bounds,{padding:[30,30]})}
+function toggleNandos(){if(nandoMarkers.length){nandoMarkers.forEach(m=>map.removeLayer(m));nandoMarkers=[];document.getElementById('directions').innerHTML='Best Nando\'s overlay hidden. Tap a day button to see that day’s route and timetable.';return}let bounds=[];nandos.forEach(n=>{bounds.push([n.lat,n.lon]);let m=L.marker([n.lat,n.lon],{icon:nandoIcon(n.rank)}).addTo(map).bindPopup(`<b><span class="rank">#${n.rank}</span> ${n.name}</b><br>${n.why}<br><a class="gm" href="https://www.google.com/maps/search/?api=1&query=${n.lat},${n.lon}" target="_blank">Open in Google Maps</a>`);nandoMarkers.push(m)});document.getElementById('directions').innerHTML='<b>Best Nando\'s overlay</b><ol class="nandolist">'+nandos.map(n=>`<li><b>#${n.rank}</b> ${n.name} - ${n.why}</li>`).join('')+'</ol>';map.fitBounds(bounds,{padding:[35,35]})}
+showDay('All');
+</script>
+</body></html>
