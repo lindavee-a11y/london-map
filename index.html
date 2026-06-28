@@ -12,46 +12,41 @@
 html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}
 
 .panel{
-  position:absolute;
-  z-index:1000;
-  top:12px;
-  left:12px;
-  right:12px;
-  max-width:560px;
-  background:rgba(255,255,255,.96);
-  padding:14px;
-  border-radius:14px;
+ position:absolute;
+ z-index:1000;
+ top:12px;
+ left:12px;
+ right:12px;
+ max-width:560px;
+ background:rgba(255,255,255,.96);
+ padding:14px;
+ border-radius:14px;
+ box-shadow:0 2px 12px #0004;
 }
 
-/* ✅ COLLAPSE CSS */
+/* ✅ collapse styles */
 .panel.collapsed{
-  width:180px;
-  padding:10px;
+ width:180px;
+ padding:10px;
 }
 .panel.collapsed #directions{
-  display:none;
+ display:none;
 }
 
-/* expand button */
 .expand-btn{
-  position:absolute;
-  top:10px;
-  right:-40px;
-  background:#174A7C;
-  color:white;
-  border-radius:8px;
-  padding:6px 8px;
-  cursor:pointer;
-  display:none;
+ position:absolute;
+ top:10px;
+ right:-40px;
+ background:#174A7C;
+ color:white;
+ border-radius:8px;
+ padding:6px 8px;
+ cursor:pointer;
+ display:none;
 }
 .panel.collapsed .expand-btn{
-  display:block;
+ display:block;
 }
-
-.buttons{display:flex;gap:6px;margin:8px 0}
-button{background:#174A7C;color:white;border:0;border-radius:18px;padding:8px;cursor:pointer}
-
-.directions{max-height:200px;overflow:auto}
 </style>
 </head>
 
@@ -60,75 +55,75 @@ button{background:#174A7C;color:white;border:0;border-radius:18px;padding:8px;cu
 <div id="map"></div>
 
 <div class="panel">
-  <h1>London 2026 Trip Map</h1>
+<h1>London 2026 Trip Map</h1>
 
-  <div class="buttons">
-    <button onclick="showDay('All')">All</button>
-    <button onclick="showDay('Monday')">Monday</button>
-    <button onclick="showDay('Tuesday')">Tuesday</button>
-  </div>
+<div class="buttons">
+<button onclick="showDay('All')">All</button>
+<button onclick="showDay('Monday')">Monday</button>
+<button onclick="showDay('Tuesday')">Tuesday</button>
+<button onclick="showDay('Wednesday')">Wednesday</button>
+<button onclick="showDay('Thursday')">Thursday</button>
+<button onclick="showDay('Friday')">Friday</button>
+<button onclick="showDay('Saturday')">Saturday</button>
+<button class="nandos" onclick="toggleNandos()">Best Nando's</button>
+</div>
 
-  <div id="directions">Select a day</div>
+<div id="directions">Select a day</div>
 </div>
 
 <script>
+
 // ✅ MAP
-const map = L.map('map').setView([51.52,-0.15],12);
+const map=L.map('map').setView([51.528,-0.15],12);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  maxZoom:19,
-  attribution:'© OpenStreetMap'
+ maxZoom:19,
+ attribution:'© OpenStreetMap'
 }).addTo(map);
 
-// ✅ basic logic
+// ✅ SIMPLE VERSION (your data would stay working here)
 function showDay(day){
-  document.getElementById('directions').innerHTML = day;
+ document.getElementById('directions').innerHTML = day;
 }
 
-// ✅ ===== COLLAPSE BLOCK (WORKING) =====
-
-// collapse panel
+// ✅ ===== COLLAPSE FEATURE =====
 function collapsePanel(){
-  const panel = document.querySelector('.panel');
-  if(panel) panel.classList.add('collapsed');
+ const panel=document.querySelector('.panel');
+ if(panel) panel.classList.add('collapsed');
 }
 
-// expand panel
 function expandPanel(){
-  const panel = document.querySelector('.panel');
-  if(!panel) return;
+ const panel=document.querySelector('.panel');
+ if(!panel) return;
 
-  panel.classList.remove('collapsed');
+ panel.classList.remove('collapsed');
 
-  // auto collapse again
-  setTimeout(() => {
-    panel.classList.add('collapsed');
-  }, 15000);
+ setTimeout(()=>{
+  panel.classList.add('collapsed');
+ },15000);
 }
 
-// hook into showDay
 const originalShowDay = showDay;
 
 showDay = function(day){
-  originalShowDay(day);
-  collapsePanel();
+ originalShowDay(day);
+ collapsePanel();
 }
 
-// add expand button
-setTimeout(() => {
-  const panel = document.querySelector('.panel');
-  if(panel){
-    const btn = document.createElement('div');
-    btn.className = 'expand-btn';
-    btn.innerHTML = '☰';
-    btn.onclick = expandPanel;
-    panel.appendChild(btn);
-  }
-}, 500);
+setTimeout(()=>{
+ const panel=document.querySelector('.panel');
+ if(panel){
+  const btn=document.createElement('div');
+  btn.className='expand-btn';
+  btn.innerHTML='☰';
+  btn.onclick=expandPanel;
+  panel.appendChild(btn);
+ }
+},500);
 
-// ✅ ===== END =====
-
+// ✅ START
 showDay('All');
+
 </script>
 
 </body>
