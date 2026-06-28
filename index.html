@@ -17,11 +17,11 @@ html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}
  top:12px;left:12px;right:12px;
  max-width:560px;
  background:#fff;
- padding:14px;border-radius:14px;
+ padding:14px;
+ border-radius:14px;
  box-shadow:0 2px 12px #0004;
 }
 
-/* collapse */
 .panel.collapsed{width:180px}
 .panel.collapsed #directions{display:none}
 
@@ -29,21 +29,26 @@ html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}
  position:absolute;
  top:10px;right:-40px;
  background:#174A7C;color:#fff;
- padding:6px 8px;border-radius:8px;
- cursor:pointer;display:none;
+ padding:6px 8px;
+ border-radius:8px;
+ cursor:pointer;
+ display:none;
 }
 .panel.collapsed .expand-btn{display:block}
 
 .buttons{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 button{background:#174A7C;color:#fff;border:0;border-radius:18px;padding:8px 12px;cursor:pointer}
 
-/* legend */
 .legend{
  display:grid;
  grid-template-columns:1fr 1fr;
  gap:6px;margin-top:8px;font-size:13px;
 }
-.legend div{display:flex;align-items:center;gap:6px}
+.legend div{
+ display:flex;
+ align-items:center;
+ gap:6px;
+}
 
 .marker{width:14px;height:14px;border-radius:50%;border:2px solid white}
 .hotel,.rail{background:#7b1fa2}
@@ -57,8 +62,9 @@ button{background:#174A7C;color:#fff;border:0;border-radius:18px;padding:8px 12p
  border-top:1px solid #ddd;
  padding-top:8px;
 }
+
 .time{font-weight:bold;color:#174A7C}
-.notes{font-size:12px;color:#555}
+.notes{color:#555;font-size:12px;font-style:italic}
 </style>
 </head>
 
@@ -67,6 +73,7 @@ button{background:#174A7C;color:#fff;border:0;border-radius:18px;padding:8px 12p
 <div id="map"></div>
 
 <div class="panel">
+
 <h1>London 2026 Trip Map</h1>
 
 <div class="buttons">
@@ -80,118 +87,135 @@ button{background:#174A7C;color:#fff;border:0;border-radius:18px;padding:8px 12p
 </div>
 
 <div class="legend">
-  <div><span class="marker hotel"></span> Hotel / Rail</div>
-  <div><span class="marker venue"></span> Attractions</div>
-  <div><span class="marker restaurant"></span> Restaurants</div>
-  <div><span class="marker tube"></span> Tube</div>
+<div><span class="marker hotel"></span> Hotel / Rail</div>
+<div><span class="marker venue"></span> Attractions</div>
+<div><span class="marker restaurant"></span> Restaurants</div>
+<div><span class="marker tube"></span> Tube</div>
 </div>
 
 <div id="directions">Tap a day</div>
+
 </div>
 
 <script>
 
-// ===== FULL ORIGINAL DATA (UNCHANGED) =====
+// ===== PLACES =====
 const places={
-  hotel:[51.5444,-0.1624,'Hampstead Britannia Hotel','hotel'],
-  stpancras:[51.5319,-0.1264,'St Pancras International','rail'],
-  camden:[51.5413,-0.1461,'Camden Market','venue'],
-  primrose:[51.5399,-0.1614,'Primrose Hill','venue'],
-  regents:[51.5311,-0.1599,"Regent's Park",'venue'],
-  library:[51.5300,-0.1277,'British Library','venue'],
-  coal:[51.5366,-0.1254,'Coal Drops Yard','venue'],
-  roundhouse:[51.5433,-0.1518,'Roundhouse','venue'],
-  kew:[51.4783,-0.2980,'Kew Gardens','venue'],
-  covent:[51.5117,-0.1230,'Covent Garden','venue'],
-  soho:[51.5136,-0.1365,'Soho','venue'],
-  nandosSoho:[51.5141,-0.1317,"Nando's Soho",'restaurant'],
-  va:[51.4966,-0.1722,'Victoria and Albert Museum','venue'],
-  hyde:[51.5073,-0.1657,'Hyde Park','venue'],
-  heath:[51.5608,-0.1657,'Hampstead Heath','venue'],
-  wallace:[51.5173,-0.1529,'Wallace Collection','venue'],
-  nandosFinchley:[51.5481,-0.1812,"Nando's Finchley Road",'restaurant'],
-  chalk:[51.5441,-0.1537,'Chalk Farm','tube'],
-  kings:[51.5308,-0.1238,'Kings Cross','tube'],
-  tcr:[51.5162,-0.1309,'Tottenham Court Road','tube'],
-  southKen:[51.4941,-0.1738,'South Kensington','tube'],
-  kewStation:[51.4770,-0.2850,'Kew Station','tube'],
-  finchley:[51.5472,-0.1803,'Finchley','tube'],
-  bond:[51.5172,-0.1492,'Bond Street','tube']
+ hotel:[51.5444,-0.1624,'Hampstead Britannia Hotel','hotel'],
+ stpancras:[51.5319,-0.1264,'St Pancras International','rail'],
+ camden:[51.5413,-0.1461,'Camden Market','venue'],
+ primrose:[51.5399,-0.1614,'Primrose Hill','venue'],
+ regents:[51.5311,-0.1599,"Regent's Park",'venue'],
+ library:[51.5300,-0.1277,'British Library','venue'],
+ coal:[51.5366,-0.1254,'Coal Drops Yard','venue'],
+ roundhouse:[51.5433,-0.1518,'Roundhouse','venue'],
+ kew:[51.4783,-0.2980,'Kew Gardens','venue'],
+ covent:[51.5117,-0.1230,'Covent Garden','venue'],
+ soho:[51.5136,-0.1365,'Soho','venue'],
+ nandosSoho:[51.5141,-0.1317,"Nando's Soho",'restaurant'],
+ va:[51.4966,-0.1722,'Victoria & Albert Museum','venue'],
+ hyde:[51.5073,-0.1657,'Hyde Park','venue'],
+ heath:[51.5608,-0.1657,'Hampstead Heath','venue'],
+ wallace:[51.5173,-0.1529,'Wallace Collection','venue'],
+ nandosFinchley:[51.5481,-0.1812,"Nando's Finchley Road",'restaurant'],
+ chalk:[51.5441,-0.1537,'Chalk Farm','tube'],
+ kings:[51.5308,-0.1238,'Kings Cross','tube'],
+ tcr:[51.5162,-0.1309,'Tottenham Court Road','tube'],
+ southKen:[51.4941,-0.1738,'South Kensington','tube'],
+ kewStation:[51.4770,-0.2850,'Kew Station','tube'],
+ finchley:[51.5472,-0.1803,'Finchley','tube'],
+ bond:[51.5172,-0.1492,'Bond Street','tube']
 };
 
+// ===== FULL TIMETABLE =====
 const timetable={
-  Monday:[
-    ['13:57','stpancras','Arrive St Pancras','Arrival'],
-    ['14:45-15:15','hotel','Travel to hotel','Tube / taxi'],
-    ['15:30-16:30','hotel','Check-in + rest',''],
-    ['17:00-18:30','camden','Camden Market',''],
-    ['18:30-19:30','primrose',"Primrose Hill + Regent's Park",'Scenic walk'],
-    ['19:30-20:30','camden','Dinner','Camden'],
-    ['Evening','hotel','Relax','']
-  ],
-  Tuesday:[
-    ['08:30-09:30','hotel','Breakfast',''],
-    ['09:30-10:00','chalk','Travel','Tube'],
-    ['10:00-12:30','library','British Library + tour',''],
-    ['12:30-13:30','library','Lunch',''],
-    ['13:30-15:30','coal','Coal Drops Yard',''],
-    ['15:30-17:00','hotel','Rest','Important'],
-    ['17:15-18:15','camden','Dinner',''],
-    ['19:00-22:15','roundhouse','Concert','']
-  ],
-  Wednesday:[
-    ['09:00-10:00','hotel','Breakfast',''],
-    ['10:00-11:00','kewStation','Travel',''],
-    ['11:00-14:30','kew','Kew Gardens',''],
-    ['16:00-17:30','hotel','Rest',''],
-    ['18:00-19:00','covent','Covent Garden',''],
-    ['19:00-20:00','nandosSoho','Dinner','']
-  ],
-  Thursday:[
-    ['09:00-10:00','hotel','Breakfast',''],
-    ['10:00-10:45','southKen','Travel',''],
-    ['10:45-13:30','va','Museum',''],
-    ['13:30-14:30','va','Lunch',''],
-    ['14:30-16:00','hyde','Park',''],
-    ['16:45-18:00','hotel','Rest',''],
-    ['19:00','hotel','Dinner','']
-  ],
-  Friday:[
-    ['09:30-10:30','hotel','Breakfast',''],
-    ['10:30-13:00','heath','Walk',''],
-    ['13:00-14:00','heath','Lunch',''],
-    ['14:30-16:00','wallace','Gallery',''],
-    ['18:30-19:30','nandosFinchley','Dinner','']
-  ],
-  Saturday:[
-    ['08:30-09:30','hotel','Breakfast',''],
-    ['13:49','stpancras','Departure','']
-  ]
+ Monday:[
+ ['13:57','stpancras','Arrive St Pancras','Arrival'],
+ ['14:45-15:15','hotel','Travel to hotel','Tube / taxi'],
+ ['15:30-16:30','hotel','Check-in + rest',''],
+ ['17:00-18:30','camden','Camden Market',''],
+ ['18:30-19:30','primrose',"Primrose Hill + Regent's Park",'Scenic walk'],
+ ['19:30-20:30','camden','Dinner','Camden'],
+ ['Evening','hotel','Relax','']
+ ],
+ Tuesday:[
+ ['08:30-09:30','hotel','Breakfast',''],
+ ['09:30-10:00','chalk','Travel to British Library','Tube via Chalk Farm'],
+ ['10:00-12:30','library','British Library + tour',''],
+ ['12:30-13:30','library','Lunch',''],
+ ['13:30-15:30','coal','Coal Drops Yard',''],
+ ['15:30-17:00','hotel','Rest at hotel','Important before concert'],
+ ['17:15-18:15','camden','Early dinner',''],
+ ['18:15-18:30','roundhouse','Walk to Roundhouse',''],
+ ['19:00-22:15','roundhouse','Concert',''],
+ ['22:30','hotel','Return hotel','']
+ ],
+ Wednesday:[
+ ['09:00-10:00','hotel','Breakfast',''],
+ ['10:00-11:00','kewStation','Travel','Tube / Overground'],
+ ['11:00-14:30','kew','Kew Gardens',''],
+ ['14:30-15:00','kew','Lunch',''],
+ ['15:00-16:00','hotel','Return',''],
+ ['16:00-17:30','hotel','Rest',''],
+ ['17:30-18:00','tcr','Travel',''],
+ ['18:00-19:00','covent','Covent + Soho',''],
+ ['19:00-20:00','nandosSoho','Dinner',''],
+ ['Evening','hotel','Return','']
+ ],
+ Thursday:[
+ ['09:00-10:00','hotel','Breakfast',''],
+ ['10:00-10:45','southKen','Travel to South Kensington','Tube'],
+ ['10:45-13:30','va','Visit V&A Museum',''],
+ ['13:30-14:30','va','Lunch',''],
+ ['14:30-16:00','hyde','Hyde Park / café','Relax'],
+ ['16:00-16:45','hotel','Return',''],
+ ['16:45-18:00','hotel','Rest',''],
+ ['19:00','hotel','Dinner','']
+ ],
+ Friday:[
+ ['09:30-10:30','hotel','Breakfast',''],
+ ['10:30-13:00','heath','Hampstead Heath','Walk'],
+ ['13:00-14:00','heath','Lunch',''],
+ ['14:00-14:30','bond','Travel',''],
+ ['14:30-16:00','wallace','Wallace Collection',''],
+ ['16:00-16:30','hotel','Return',''],
+ ['16:30-18:00','hotel','Rest',''],
+ ['18:15-18:30','finchley','Travel',''],
+ ['18:30-19:30','nandosFinchley','Dinner',''],
+ ['Evening','hotel','Relax','']
+ ],
+ Saturday:[
+ ['08:30-09:30','hotel','Breakfast',''],
+ ['09:30-11:30','camden','Walk / coffee',''],
+ ['12:30-13:00','stpancras','Travel',''],
+ ['13:49','stpancras','Check-in',''],
+ ['15:04','stpancras','Departure','']
+ ]
 };
 
 // ===== ROUTES =====
 const routes={
-  Monday:[['stpancras','hotel','transit'],['hotel','camden','walk'],['camden','primrose','walk']],
-  Tuesday:[['hotel','chalk','walk'],['chalk','library','transit'],['library','coal','walk']],
-  Wednesday:[['hotel','kewStation','transit'],['kewStation','kew','walk']],
-  Thursday:[['hotel','southKen','transit'],['southKen','va','walk'],['va','hyde','walk']],
-  Friday:[['hotel','heath','walk'],['heath','wallace','transit']],
-  Saturday:[['hotel','stpancras','transit']]
+ Monday:[['stpancras','hotel','transit'],['hotel','camden','walk'],['camden','primrose','walk']],
+ Tuesday:[['hotel','chalk','walk'],['chalk','library','transit'],['library','coal','walk'],['coal','roundhouse','walk']],
+ Wednesday:[['hotel','kewStation','transit'],['kewStation','kew','walk'],['kew','covent','transit']],
+ Thursday:[['hotel','southKen','transit'],['southKen','va','walk'],['va','hyde','walk']],
+ Friday:[['hotel','heath','walk'],['heath','wallace','transit']],
+ Saturday:[['hotel','stpancras','transit']]
 };
 
-// ===== MAP =====
+// ===== MAP + FUNCTIONS =====
 const map=L.map('map').setView([51.52,-0.15],12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
 
 let markers=[],lines=[];
 
-function icon(type){
- return L.divIcon({html:`<div class="marker ${type}"></div>`});
-}
+function icon(type){return L.divIcon({html:`<div class="marker ${type}"></div>`});}
 
 function add(k){
  let p=places[k];
- let m=L.marker([p[0],p[1]],{icon:icon(p[3])}).addTo(map);
+ let m=L.marker([p[0],p[1]],{icon:icon(p[3])})
+   .addTo(map)
+   .bindPopup(`<b>${p[2]}</b>`);
  markers.push(m);
  return [p[0],p[1]];
 }
@@ -207,37 +231,41 @@ function showDay(day){
  let bounds=[];
 
  routes[day].forEach(r=>{
-  let a=places[r[0]];
-  let b=places[r[1]];
-
-  lines.push(L.polyline([[a[0],a[1]],[b[0],b[1]]],{
-   color:r[2]==='walk'?'#2e7d32':'#1565c0',
-   dashArray:r[2]==='walk'?'8,8':null
-  }).addTo(map));
-
-  bounds.push(add(r[0]));
-  bounds.push(add(r[1]));
+   let a=places[r[0]], b=places[r[1]];
+   lines.push(
+     L.polyline([[a[0],a[1]],[b[0],b[1]]],{
+       color:r[2]==='walk'?'#2e7d32':'#1565c0',
+       dashArray:r[2]==='walk'?'8,8':null
+     }).addTo(map)
+   );
+   bounds.push(add(r[0]));
+   bounds.push(add(r[1]));
  });
 
  map.fitBounds(bounds,{padding:[30,30]});
 
  document.getElementById('directions').innerHTML =
- '<b>'+day+'</b><ol>'+
- timetable[day].map(i =>
- `<li><span class="time">${i[0]}</span> ${i[2]}<div class="notes">${i[3]||''}</div></li>`
- ).join('')+'</ol>';
+ '<b>'+day+' timetable</b><ol>' +
+ timetable[day].map(t=>`
+  <li>
+   <span class="time">${t[0]}</span> ${t[2]}
+   <br><b>${places[t[1]][2]}</b>
+   ${t[3]?'<br><span class="notes">'+t[3]+'</span>':''}
+  </li>
+ `).join('') +
+ '</ol>';
 }
 
-// collapse
-function collapse(){document.querySelector('.panel').classList.add('collapsed')}
+// collapse (fixed: doesn’t block buttons anymore)
+function collapse(){document.querySelector('.panel').classList.add('collapsed');}
 function expand(){
  let p=document.querySelector('.panel');
  p.classList.remove('collapsed');
  setTimeout(()=>p.classList.add('collapsed'),15000);
 }
 
-const original=showDay;
-showDay=(d)=>{original(d);collapse();}
+const orig=showDay;
+showDay=function(d){orig(d);collapse();}
 
 setTimeout(()=>{
  let b=document.createElement('div');
