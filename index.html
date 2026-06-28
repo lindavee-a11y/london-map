@@ -207,6 +207,87 @@ function toggleNandos(){
   map.fitBounds(bounds,{padding:[35,35]});
 }
 showDay('All');
+  <!-- === SMART COLLAPSE BLOCK START === -->
+
+<style>
+.panel.collapsed{
+  width:180px;
+  padding:10px;
+}
+
+.panel.collapsed #directions{
+  display:none;
+}
+
+.expand-btn{
+  position:absolute;
+  top:10px;
+  right:-40px;
+  background:#174A7C;
+  color:white;
+  border-radius:8px;
+  padding:6px 8px;
+  cursor:pointer;
+  font-size:14px;
+  display:none;
+}
+
+.panel.collapsed .expand-btn{
+  display:block;
+}
+</style>
+
+<script>
+// collapse panel
+function collapsePanel(){
+  const panel = document.querySelector('.panel');
+  if(!panel) return;
+
+  panel.classList.add('collapsed');
+
+  if(window.panelTimer){
+    clearTimeout(window.panelTimer);
+  }
+}
+
+// expand panel
+function expandPanel(){
+  const panel = document.querySelector('.panel');
+  if(!panel) return;
+
+  panel.classList.remove('collapsed');
+
+  window.panelTimer = setTimeout(() => {
+    panel.classList.add('collapsed');
+  }, 15000); // auto collapse after 15s
+}
+
+// hook into your existing showDay
+const originalShowDay = window.showDay;
+
+window.showDay = function(day){
+  if(originalShowDay){
+    originalShowDay(day);
+  }
+  collapsePanel();
+}
+
+// inject expand button automatically
+setTimeout(() => {
+  const panel = document.querySelector('.panel');
+  if(panel && !panel.querySelector('.expand-btn')){
+    const btn = document.createElement('div');
+    btn.className = 'expand-btn';
+    btn.innerHTML = '☰';
+    btn.onclick = expandPanel;
+    panel.style.position = 'relative';
+    panel.appendChild(btn);
+  }
+}, 500);
+
 </script>
+<!-- === SMART COLLAPSE BLOCK END === -->
+</script>
+  
 </body>
 </html>
